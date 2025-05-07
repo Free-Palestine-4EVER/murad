@@ -71,7 +71,7 @@ export default function ContactForm() {
       console.error("Error submitting form:", error)
       setFormStatus({
         type: "error",
-        message: "An unexpected error occurred. Please try again or contact me directly.",
+        message: "An unexpected error occurred. Please try again or contact us directly via WhatsApp or email.",
       })
     } finally {
       setIsSubmitting(false)

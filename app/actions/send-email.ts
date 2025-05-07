@@ -17,6 +17,8 @@ type BookingFormData = {
   message?: string
 }
 
+// Also update the sendBookingEmail function with similar error handling improvements
+
 export async function sendBookingEmail(formData: FormData) {
   try {
     // Extract form data
@@ -34,6 +36,15 @@ export async function sendBookingEmail(formData: FormData) {
       return {
         success: false,
         message: "Please fill in all required fields",
+      }
+    }
+
+    // Validate Resend API key
+    if (!process.env.RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is not defined in environment variables")
+      return {
+        success: false,
+        message: "Server configuration error. Please contact the administrator.",
       }
     }
 
@@ -119,49 +130,62 @@ export async function sendBookingEmail(formData: FormData) {
       ${pricingNote}
     `
 
-    // Send email using Resend with default domain
-    const { data, error } = await resend.emails.send({
-      from: "Murad Wadi Rum <onboarding@resend.dev>",
-      to: "muradwadirum@gmail.com",
-      subject: `New Booking Request from ${name}`,
-      html: emailHtml,
-      reply_to: email,
-    })
+    try {
+      // Send email using Resend with default domain
+      const { data, error } = await resend.emails.send({
+        from: "Murad Wadi Rum <onboarding@resend.dev>",
+        to: "muradwadirum@gmail.com",
+        subject: `New Booking Request from ${name}`,
+        html: emailHtml,
+        reply_to: email,
+      })
 
-    if (error) {
-      console.error("Error sending email:", error)
+      if (error) {
+        console.error("Error sending booking email:", error)
+        return {
+          success: false,
+          message: "Failed to send your booking request. Please try again or contact us directly.",
+        }
+      }
+
+      // Also send a confirmation email to the customer
+      try {
+        await resend.emails.send({
+          from: "Murad Wadi Rum <onboarding@resend.dev>",
+          to: email,
+          subject: "Your Booking Request - Murad Wadi Rum",
+          html: `
+            <h2>Thank you for your booking request!</h2>
+            <p>Dear ${name},</p>
+            <p>We have received your booking request and will get back to you shortly to confirm your reservation.</p>
+            <h3>Booking Details:</h3>
+            <p><strong>Date of Arrival:</strong> ${date}</p>
+            <p><strong>Number of Persons:</strong> ${persons}</p>
+            <p><strong>Accommodation:</strong> ${accommodationName}</p>
+            <p><strong>Tour:</strong> ${tourName}</p>
+            <p><strong>Estimated Total Price:</strong> ${totalPrice} JOD</p>
+            ${pricingNote}
+            <p>If you have any questions, please don't hesitate to contact us at muradwadirum@gmail.com or +962776558930.</p>
+            <p>We look forward to welcoming you to Wadi Rum!</p>
+            <p>Best regards,<br>Murad Wadi Rum Team</p>
+          `,
+        })
+      } catch (confirmationError) {
+        console.error("Error sending confirmation email:", confirmationError)
+        // We don't return an error here since the main booking email was sent successfully
+      }
+
+      return {
+        success: true,
+        message:
+          "Your booking request has been sent successfully! We will contact you shortly to confirm your reservation.",
+      }
+    } catch (sendError) {
+      console.error("Error in sendBookingEmail:", sendError)
       return {
         success: false,
         message: "Failed to send your booking request. Please try again or contact us directly.",
       }
-    }
-
-    // Also send a confirmation email to the customer
-    await resend.emails.send({
-      from: "Murad Wadi Rum <onboarding@resend.dev>",
-      to: email,
-      subject: "Your Booking Request - Murad Wadi Rum",
-      html: `
-        <h2>Thank you for your booking request!</h2>
-        <p>Dear ${name},</p>
-        <p>We have received your booking request and will get back to you shortly to confirm your reservation.</p>
-        <h3>Booking Details:</h3>
-        <p><strong>Date of Arrival:</strong> ${date}</p>
-        <p><strong>Number of Persons:</strong> ${persons}</p>
-        <p><strong>Accommodation:</strong> ${accommodationName}</p>
-        <p><strong>Tour:</strong> ${tourName}</p>
-        <p><strong>Estimated Total Price:</strong> ${totalPrice} JOD</p>
-        ${pricingNote}
-        <p>If you have any questions, please don't hesitate to contact us at muradwadirum@gmail.com or +962776558930.</p>
-        <p>We look forward to welcoming you to Wadi Rum!</p>
-        <p>Best regards,<br>Murad Wadi Rum Team</p>
-      `,
-    })
-
-    return {
-      success: true,
-      message:
-        "Your booking request has been sent successfully! We will contact you shortly to confirm your reservation.",
     }
   } catch (error) {
     console.error("Error in sendBookingEmail:", error)
@@ -188,6 +212,15 @@ export async function sendContactEmail(formData: FormData) {
       }
     }
 
+    // Validate Resend API key
+    if (!process.env.RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is not defined in environment variables")
+      return {
+        success: false,
+        message: "Server configuration error. Please contact the administrator.",
+      }
+    }
+
     // Create email content
     const emailHtml = `
       <h2>New Contact Form Submission</h2>
@@ -198,26 +231,34 @@ export async function sendContactEmail(formData: FormData) {
       <p>${message.replace(/\n/g, "<br>")}</p>
     `
 
-    // Send email using Resend with default domain
-    const { data, error } = await resend.emails.send({
-      from: "Murad Wadi Rum <onboarding@resend.dev>",
-      to: "muradwadirum@gmail.com",
-      subject: `Contact Form: ${subject || "New message from website"}`,
-      html: emailHtml,
-      reply_to: email,
-    })
+    try {
+      // Send email using Resend with default domain
+      const { data, error } = await resend.emails.send({
+        from: "Murad Wadi Rum <onboarding@resend.dev>",
+        to: "muradwadirum@gmail.com",
+        subject: `Contact Form: ${subject || "New message from website"}`,
+        html: emailHtml,
+        reply_to: email,
+      })
 
-    if (error) {
-      console.error("Error sending email:", error)
+      if (error) {
+        console.error("Resend API error:", error)
+        return {
+          success: false,
+          message: "Failed to send your message. Please try again or contact us directly.",
+        }
+      }
+
+      return {
+        success: true,
+        message: "Your message has been sent successfully! We will get back to you as soon as possible.",
+      }
+    } catch (sendError) {
+      console.error("Error sending email with Resend:", sendError)
       return {
         success: false,
         message: "Failed to send your message. Please try again or contact us directly.",
       }
-    }
-
-    return {
-      success: true,
-      message: "Your message has been sent successfully! We will get back to you as soon as possible.",
     }
   } catch (error) {
     console.error("Error in sendContactEmail:", error)
