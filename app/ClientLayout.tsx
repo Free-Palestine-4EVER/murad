@@ -14,6 +14,12 @@ import AnnouncementBar from "@/components/announcement-bar"
 
 const inter = Inter({ subsets: ["latin"] })
 
+// Base URL for the website
+const baseUrl =
+  typeof window !== "undefined"
+    ? window.location.origin
+    : process.env.NEXT_PUBLIC_BASE_URL || "https://muradwadirum.com"
+
 export default function ClientLayout({
   children,
 }: Readonly<{
@@ -47,23 +53,23 @@ export default function ClientLayout({
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://muradwadirum.com/" />
+        <meta property="og:url" content={baseUrl} />
         <meta property="og:title" content="Murad Wadi Rum - Authentic Bedouin Desert Experiences" />
         <meta
           property="og:description"
           content="Experience the magic of Jordan's Wadi Rum desert with authentic Bedouin tours, jeep safaris, camel trekking, and overnight camping."
         />
-        <meta property="og:image" content="/social-share.png" />
+        <meta property="og:image" content={`${baseUrl}/social-share.png`} />
 
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://muradwadirum.com/" />
+        <meta property="twitter:url" content={baseUrl} />
         <meta property="twitter:title" content="Murad Wadi Rum - Authentic Bedouin Desert Experiences" />
         <meta
           property="twitter:description"
           content="Experience the magic of Jordan's Wadi Rum desert with authentic Bedouin tours, jeep safaris, camel trekking, and overnight camping."
         />
-        <meta property="twitter:image" content="/social-share.png" />
+        <meta property="twitter:image" content={`${baseUrl}/social-share.png`} />
       </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
