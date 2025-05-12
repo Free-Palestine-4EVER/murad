@@ -11,6 +11,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import WhatsAppButton from "@/components/whatsapp-button"
 import LoadingScreen from "@/components/loading-screen"
 import AnnouncementBar from "@/components/announcement-bar"
+import InfoModal from "@/components/info-modal"
+import { ModalProvider, useModal } from "@/context/modal-context"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -20,13 +22,10 @@ const baseUrl =
     ? window.location.origin
     : process.env.NEXT_PUBLIC_BASE_URL || "https://muradwadirum.com"
 
-export default function ClientLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+function MainLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
+  const { isModalOpen, closeModal } = useModal()
 
   useEffect(() => {
     // Set isLoaded to true after the loading screen completes
@@ -261,9 +260,18 @@ export default function ClientLayout({
             </footer>
 
             <WhatsAppButton />
+            <InfoModal isOpen={isModalOpen} onClose={closeModal} />
           </div>
         </ThemeProvider>
       </body>
     </html>
+  )
+}
+
+export default function ClientLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <ModalProvider>
+      <MainLayout>{children}</MainLayout>
+    </ModalProvider>
   )
 }
